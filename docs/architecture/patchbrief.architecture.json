@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "PatchBrief 系统架构",
+    "locale": "zh-CN",
+    "output": "patchbrief-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [1320, 780],
+    "views": [
+      {
+        "id": "install-path",
+        "label": "安装与构建",
+        "focus": ["repository", "buildPipeline", "pagesInstaller", "payload", "bookmark"],
+        "note": "从 TypeScript 源码到可拖动、自包含 Bookmarklet。"
+      },
+      {
+        "id": "inspect-path",
+        "label": "页面检查",
+        "focus": ["developer", "bookmark", "runtime", "inspector", "workbench"],
+        "note": "检查器在宿主页面中选择目标，工作台在 Shadow DOM 内隔离运行。"
+      },
+      {
+        "id": "brief-path",
+        "label": "任务书输出",
+        "focus": ["inspector", "briefEngine", "workbench", "codingAssistant"],
+        "note": "隐私清理后的页面上下文与用户要求汇总为 Frontend Change Brief。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "developer",
+      "type": "external",
+      "label": "个人开发者",
+      "sublabel": "安装、选择、填写与复制",
+      "pos": [40, 315],
+      "size": [150, 72]
+    },
+    {
+      "id": "repository",
+      "type": "cloud",
+      "label": "GitHub 仓库",
+      "sublabel": "TypeScript · CSS · 测试 · Actions",
+      "pos": [250, 90],
+      "size": [180, 72]
+    },
+    {
+      "id": "buildPipeline",
+      "type": "backend",
+      "label": "构建与验证管线",
+      "sublabel": "esbuild IIFE · payload · 体积预算",
+      "pos": [520, 90],
+      "size": [200, 72]
+    },
+    {
+      "id": "pagesInstaller",
+      "type": "frontend",
+      "label": "GitHub Pages 安装页",
+      "sublabel": "加载并校验版本化 payload",
+      "pos": [810, 90],
+      "size": [200, 72]
+    },
+    {
+      "id": "payload",
+      "type": "database",
+      "label": "静态 Payload",
+      "sublabel": "Base64 分块 · manifest",
+      "pos": [535, 220],
+      "size": [170, 72]
+    },
+    {
+      "id": "bookmark",
+      "type": "frontend",
+      "label": "PatchBrief 书签",
+      "sublabel": "javascript: 自包含 IIFE",
+      "pos": [250, 315],
+      "size": [180, 72]
+    },
+    {
+      "id": "runtime",
+      "type": "backend",
+      "label": "运行时控制器",
+      "sublabel": "open · pause · resume · destroy",
+      "pos": [520, 315],
+      "size": [200, 72]
+    },
+    {
+      "id": "inspector",
+      "type": "security",
+      "label": "检查与上下文引擎",
+      "sublabel": "Selector · Locator · 清理 · Overlay",
+      "pos": [810, 270],
+      "size": [210, 82]
+    },
+    {
+      "id": "workbench",
+      "type": "frontend",
+      "label": "Shadow DOM 工作台",
+      "sublabel": "目标卡片 · 表单 · 预览",
+      "pos": [810, 440],
+      "size": [210, 82]
+    },
+    {
+      "id": "briefEngine",
+      "type": "backend",
+      "label": "任务书生成器",
+      "sublabel": "Markdown · JSON · 复制与下载",
+      "pos": [1090, 355],
+      "size": [190, 82]
+    },
+    {
+      "id": "codingAssistant",
+      "type": "external",
+      "label": "AI 编码助手",
+      "sublabel": "接收 Frontend Change Brief",
+      "pos": [1090, 585],
+      "size": [190, 72]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "用户浏览器 · 本地处理边界",
+      "wraps": ["bookmark", "runtime", "inspector", "workbench", "briefEngine"],
+      "pad": 26
+    }
+  ],
+  "connections": [
+    { "id": "repoBuild", "from": "repository", "to": "buildPipeline", "variant": "emphasis" },
+    { "id": "buildInstaller", "from": "buildPipeline", "to": "pagesInstaller", "label": "生成静态站点" },
+    { "id": "buildPayload", "from": "buildPipeline", "to": "payload", "label": "编码与分块", "fromSide": "bottom", "toSide": "top", "labelAt": [620, 190] },
+    { "id": "payloadInstaller", "from": "payload", "to": "pagesInstaller", "label": "版本化加载", "variant": "dashed" },
+    { "id": "developerInstall", "from": "developer", "to": "bookmark", "label": "拖入书签栏", "variant": "emphasis", "labelAt": [220, 410] },
+    { "id": "installerBookmark", "from": "pagesInstaller", "to": "bookmark", "variant": "dashed", "fromSide": "right", "toSide": "left", "via": [[1050, 126], [1050, 40], [210, 40], [210, 351]] },
+    { "id": "bookmarkRuntime", "from": "bookmark", "to": "runtime", "variant": "emphasis" },
+    { "id": "runtimeInspector", "from": "runtime", "to": "inspector" },
+    { "id": "runtimeWorkbench", "from": "runtime", "to": "workbench", "label": "Shadow DOM" },
+    { "id": "inspectorWorkbench", "from": "inspector", "to": "workbench" },
+    { "id": "workbenchBrief", "from": "workbench", "to": "briefEngine", "label": "要求与约束" },
+    { "id": "inspectorBrief", "from": "inspector", "to": "briefEngine" },
+    { "id": "briefAssistant", "from": "briefEngine", "to": "codingAssistant", "label": "Frontend Change Brief", "variant": "emphasis", "labelAt": [1185, 500] }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "安装交付", "items": ["GitHub Pages 仅分发静态安装页与 payload", "安装后的书签不依赖远程运行时"] },
+    { "dot": "emerald", "title": "隐私边界", "items": ["页面上下文、代码和任务要求保留在浏览器本地", "清理器移除表单值、脚本、事件属性与敏感字段"] },
+    { "dot": "cyan", "title": "隔离与恢复", "items": ["Shadow DOM 防止宿主 CSS 污染工作台", "destroy() 移除监听器、Overlay、宿主和全局控制对象"] }
+  ]
+}
