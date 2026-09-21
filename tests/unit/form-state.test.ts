@@ -6,8 +6,18 @@ describe('form state', () => {
     expect(createFormState().constraints).toEqual(SAFE_DEFAULT_CONSTRAINTS);
   });
 
-  it('keeps optional sections collapsed initially', () => {
-    expect(createFormState()).toMatchObject({ codeOpen: false, constraintsOpen: false });
+  it('enables AI by default only when an API bridge is configured', () => {
+    expect(createFormState(undefined, true).aiOptimize).toBe(true);
+    expect(createFormState(undefined, false).aiOptimize).toBe(false);
+  });
+
+  it('contains only fields used by the compact task flow', () => {
+    expect(createFormState()).toEqual({
+      request: '',
+      constraints: [...SAFE_DEFAULT_CONSTRAINTS],
+      screenshotNote: '',
+      aiOptimize: false,
+    });
   });
 
   it('uses explicitly saved default constraints', () => {
