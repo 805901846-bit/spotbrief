@@ -1,0 +1,2 @@
+import css from './panel.css';
+export function createPanelHost(): { host: HTMLElement; root: ShadowRoot } { const host=document.createElement('div'); host.id='patchbrief-host'; host.dataset.patchbriefUi='true'; const root=host.attachShadow({mode:'open'}); const style=document.createElement('style'); style.textContent=css; root.append(style); document.documentElement.append(host); return {host,root}; }

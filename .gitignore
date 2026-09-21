@@ -1,0 +1,10 @@
+node_modules/
+.pnpm-store/
+test-results/
+playwright-report/
+.DS_Store
+*.log
+.worktrees/
+results/
+.eval-workspaces/
+.superpowers/

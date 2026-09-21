@@ -1,0 +1,23 @@
+{
+  "name": "spotbrief",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn spotted webpage regions into structured frontend change briefs.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify-dist.mjs",
+    "check": "npm run typecheck && npm test && npm run build && npm run verify"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0",
+    "@types/node": "^24.3.1",
+    "esbuild": "^0.25.9",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
