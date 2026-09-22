@@ -26,6 +26,14 @@ export interface TaskBar {
   destroy(): void;
 }
 
+export interface ExitDialog {
+  element: HTMLElement;
+  open(returnFocus?: HTMLElement): void;
+  close(): void;
+  isOpen(): boolean;
+  destroy(): void;
+}
+
 export function createCanvasEditor(root: HTMLElement | ShadowRoot): CanvasEditor {
   const element = document.createElement('section');
   element.className = 'canvas-editor';
@@ -82,7 +90,8 @@ export function createTaskBar(root: HTMLElement | ShadowRoot): TaskBar {
     <button class="icon-button" data-action="undo" type="button" aria-label="撤销" title="撤销">↶</button>
     <button class="icon-button" data-action="redo" type="button" aria-label="重做" title="重做">↷</button>
     <button data-action="settings" type="button">设置</button>
-    <button class="generate-button" data-action="generate" type="button">生成任务书</button>`;
+    <button class="generate-button" data-action="generate" type="button">生成任务书</button>
+    <button class="exit-button" data-action="request-exit" type="button" aria-label="关闭 SpotBrief" title="关闭 SpotBrief">×</button>`;
   root.append(element);
   const count = element.querySelector<HTMLElement>('[data-change-count]')!;
   const undo = element.querySelector<HTMLButtonElement>('[data-action="undo"]')!;
@@ -95,6 +104,39 @@ export function createTaskBar(root: HTMLElement | ShadowRoot): TaskBar {
       undo.disabled = !state.canUndo;
       redo.disabled = !state.canRedo;
     },
+    destroy() { element.remove(); }
+  };
+}
+
+export function createExitDialog(root: HTMLElement | ShadowRoot): ExitDialog {
+  const element = document.createElement('section');
+  element.className = 'exit-dialog-layer';
+  element.dataset.patchbriefUi = 'true';
+  element.hidden = true;
+  element.innerHTML = `<div class="exit-dialog" role="dialog" aria-modal="true" aria-labelledby="spotbrief-exit-title" aria-describedby="spotbrief-exit-description">
+    <h2 id="spotbrief-exit-title">退出 SpotBrief？</h2>
+    <p id="spotbrief-exit-description">本次所有修改将恢复到打开前的状态。</p>
+    <div class="exit-dialog-actions"><button data-action="cancel-exit" type="button">取消</button><button class="confirm-exit" data-action="confirm-exit" type="button">退出并恢复</button></div>
+  </div>`;
+  root.append(element);
+  const cancel = element.querySelector<HTMLButtonElement>('[data-action="cancel-exit"]')!;
+  const actions = [...element.querySelectorAll<HTMLButtonElement>('button')];
+  let returnFocus: HTMLElement | undefined;
+
+  element.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const active = root instanceof ShadowRoot ? root.activeElement : document.activeElement;
+    const index = actions.indexOf(active as HTMLButtonElement);
+    const next = event.shiftKey ? (index <= 0 ? actions.length - 1 : index - 1) : (index >= actions.length - 1 ? 0 : index + 1);
+    event.preventDefault();
+    actions[next]!.focus();
+  });
+
+  return {
+    element,
+    open(target) { returnFocus = target; element.hidden = false; cancel.focus(); },
+    close() { element.hidden = true; returnFocus?.focus(); },
+    isOpen: () => !element.hidden,
     destroy() { element.remove(); }
   };
 }

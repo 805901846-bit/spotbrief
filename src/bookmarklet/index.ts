@@ -1,4 +1,4 @@
-import { VERSION, type BriefDraft, type EditableStyleProperty, type SelectionRecord, type VisualChangeRecord } from './types';
+import { VERSION, type BriefDraft, type EditableStyleProperty, type PatchBriefController, type SelectionRecord, type VisualChangeRecord } from './types';
 import { createPanelHost } from '../panel/panel';
 import { createOverlay, positionOverlay } from './overlay';
 import { resolveTarget } from './target-resolver';
@@ -16,7 +16,7 @@ import { createCommandHistory, type Command } from './command-history';
 import { applyResizeSnap, calculateResize, findResizeSnap, findSnap, offsetTranslate, type ResizeDirection, type SnapReference } from './canvas-geometry';
 import { createVisualSession } from './visual-session';
 import { createCanvasOverlay, type CanvasOverlay } from './canvas-overlay';
-import { createCanvasEditor, createTaskBar } from './canvas-editor';
+import { createCanvasEditor, createExitDialog, createTaskBar } from './canvas-editor';
 
 interface ScreenshotState { blob: Blob; url: string; filename: string; width: number; height: number }
 interface Snapshot { element: HTMLElement; selector: string; beforeTranslate: string; translateBase: string; rect: DOMRect }
@@ -36,6 +36,7 @@ interface PointerSession {
   const hover = createOverlay('hover');
   const editor = createCanvasEditor(root);
   const taskBar = createTaskBar(root);
+  const exitDialog = createExitDialog(root);
   const form = createFormState(preferences.defaultConstraints, Boolean(bridge?.url && bridge?.token));
   const changes = createVisualChangeStore();
   const history = createCommandHistory(100);
@@ -52,10 +53,20 @@ interface PointerSession {
   let preview = '', aiMessage = '', screenshotMessage = '';
   let screenshot: ScreenshotState | undefined, captureStream: MediaStream | undefined;
   let activeCapture: ReturnType<typeof selectCaptureRect> | null = null;
+  let controller: PatchBriefController;
 
   const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
   const selectedElements = () => selections.map((s) => s.element).filter((el): el is HTMLElement => el instanceof HTMLElement);
   const selectorFor = (element: Element) => selections.find((s) => s.element === element)?.selector || generateSelector(element) || element.tagName.toLowerCase();
+
+  function hasSessionWork() {
+    return selections.length > 0 || changes.list().length > 0 || Boolean(form.request.trim() || form.code.trim() || form.screenshotNote.trim() || screenshot);
+  }
+
+  function requestExit(trigger?: HTMLElement) {
+    if (hasSessionWork()) exitDialog.open(trigger);
+    else controller.destroy();
+  }
 
   function record(element: Element): SelectionRecord {
     const rect = element.getBoundingClientRect();
@@ -228,6 +239,12 @@ interface PointerSession {
   function onMarkerClick(event: MouseEvent) { const marker = (event.target as Element).closest<HTMLElement>('[data-change-number]'); if (!marker) return; const owner = owners.get(marker.closest<HTMLElement>('.patchbrief-canvas-overlay')!); if (!owner) return; owner.scrollIntoView({ block: 'center', inline: 'center' }); selections = [record(owner)]; editorVisible = true; refresh(); }
   function onKey(event: KeyboardEvent) {
     const keyTarget = event.target as HTMLElement;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (exitDialog.isOpen()) exitDialog.close();
+      else requestExit(keyTarget);
+      return;
+    }
     const resizeDirection = keyTarget.dataset?.resizeDir as ResizeDirection | undefined;
     if (resizeDirection && event.key.startsWith('Arrow')) {
       const owner = owners.get(keyTarget.closest<HTMLElement>('.patchbrief-canvas-overlay')!);
@@ -260,7 +277,6 @@ interface PointerSession {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'y') { event.preventDefault(); history.redo(); refresh(); return; }
     if (event.key === 'ArrowUp' && selections.length === 1) { const current = selections[0]!.element, parent = current.parentElement; if (parent && parent !== document.body && parent !== document.documentElement) { event.preventDefault(); parentPath.push(current); selections = [record(parent)]; editorVisible = true; refresh(); } }
     else if (event.key === 'ArrowDown' && parentPath.length) { const child = parentPath.pop()!; if (child.isConnected) { event.preventDefault(); selections = [record(child)]; refresh(); } }
-    else if (event.key === 'Escape') { selections = []; editorVisible = false; refresh(); }
   }
 
   root.addEventListener('pointerdown', (event) => { const target = event.target as HTMLInputElement; if (target.dataset.action === 'set-radius') target.dataset.beforeValues = JSON.stringify(selectedElements().map((el) => ({ visual: styleValue(el, 'borderRadius'), restore: inlineState(el, 'borderRadius') }))); });
@@ -278,6 +294,7 @@ interface PointerSession {
       case 'reset-element': resetSelected(); break; case 'close-editor': editorVisible = false; refresh(); break;
       case 'undo': history.undo(); refresh(); break; case 'redo': history.redo(); refresh(); break;
       case 'settings': settingsOpen = !settingsOpen; renderSettings(); break; case 'close-settings': settingsOpen = false; preview = ''; renderSettings(); break;
+      case 'request-exit': requestExit(target); break; case 'cancel-exit': exitDialog.close(); break; case 'confirm-exit': controller.destroy(); break;
       case 'capture': await startCapture(); break; case 'generate': await generate(); break; case 'back': preview = ''; renderSettings(); break;
       case 'copy': await copyText(preview); break; case 'json': await copyText(serializeBriefJson(draft())); break; case 'download': downloadText(preview, `spotbrief-${Date.now()}.md`); break;
       case 'copy-png': if (screenshot && navigator.clipboard?.write && typeof ClipboardItem !== 'undefined') await navigator.clipboard.write([new ClipboardItem({ 'image/png': screenshot.blob })]); break;
@@ -290,11 +307,11 @@ interface PointerSession {
   window.addEventListener('pointerdown', startPointer, true); window.addEventListener('pointermove', movePointer, true); window.addEventListener('pointerup', endPointer, true); window.addEventListener('pointercancel', endPointer, true);
   const reposition = () => refresh(); window.addEventListener('scroll', reposition, true); window.addEventListener('resize', reposition);
 
-  const controller = { version: VERSION, open() { host.style.display = ''; refresh(); }, pause() { paused = true; hover.style.display = 'none'; }, resume() { paused = false; }, destroy() {
+  controller = { version: VERSION, open() { host.style.display = ''; refresh(); }, pause() { paused = true; hover.style.display = 'none'; }, resume() { paused = false; }, destroy() {
     activeCapture?.cancel(); captureStream?.getTracks().forEach((track) => track.stop()); if (screenshot) URL.revokeObjectURL(screenshot.url); if (hoverRaf) cancelAnimationFrame(hoverRaf); if (canvasRaf) cancelAnimationFrame(canvasRaf); pointer = null; session.restoreAll();
     document.removeEventListener('pointermove', onHover, true); document.removeEventListener('click', onPageClick, true); document.removeEventListener('click', onMarkerClick, true); document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('pointerdown', startPointer, true); window.removeEventListener('pointermove', movePointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('scroll', reposition, true); window.removeEventListener('resize', reposition);
-    hover.remove(); overlays.forEach((overlay) => overlay.destroy()); editor.destroy(); taskBar.destroy(); document.querySelector('.patchbrief-capture-layer')?.remove(); host.remove(); delete window.__PATCHBRIEF__;
+    hover.remove(); overlays.forEach((overlay) => overlay.destroy()); editor.destroy(); taskBar.destroy(); exitDialog.destroy(); document.querySelector('.patchbrief-capture-layer')?.remove(); host.remove(); delete window.__PATCHBRIEF__;
   } };
   window.__PATCHBRIEF__ = controller; refresh();
 })();
