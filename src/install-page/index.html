@@ -10,14 +10,14 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="wordmark" href="#top" aria-label="SpotBrief 首页"><span aria-hidden="true">S</span>SpotBrief</a>
-    <nav aria-label="页面导航">
+    <a class="wordmark" href="#top" aria-label="SpotBrief 首页" data-aria-zh="SpotBrief 首页" data-aria-en="SpotBrief home"><span aria-hidden="true">S</span>SpotBrief</a>
+    <nav aria-label="页面导航" data-aria-zh="页面导航" data-aria-en="Page navigation">
       <a href="#workflow" data-zh="如何使用" data-en="How it works">如何使用</a>
       <a href="#effect" data-zh="使用效果" data-en="What you get">使用效果</a>
       <a href="#privacy" data-zh="隐私" data-en="Privacy">隐私</a>
     </nav>
     <div class="header-actions">
-      <button id="language" type="button" aria-label="Switch language">EN</button>
+      <button id="language" type="button" aria-label="切换语言" data-aria-zh="切换语言" data-aria-en="Switch language">EN</button>
       <a class="header-install" href="#install" data-zh="最快安装" data-en="Quick install">最快安装</a>
     </div>
   </header>
@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div class="product-preview" data-product-preview role="img" aria-label="SpotBrief 操作效果预览" inert>
+      <div class="product-preview" data-product-preview aria-hidden="true" inert>
         <div class="preview-browser">
           <div class="browser-bar"><i></i><i></i><i></i><span>product.local</span></div>
           <div class="preview-canvas">
@@ -83,11 +83,11 @@
       </div>
       <div class="effect-layout">
         <figure class="before-after">
-          <div><figcaption data-zh="操作前" data-en="Before">操作前</figcaption><button type="button">提交</button></div>
+          <div><figcaption data-zh="操作前" data-en="Before">操作前</figcaption><span class="effect-button" data-zh="提交" data-en="Submit">提交</span></div>
           <span aria-hidden="true">→</span>
-          <div class="after"><figcaption data-zh="操作后" data-en="After">操作后</figcaption><button type="button">提交</button><b>1</b></div>
+          <div class="after"><figcaption data-zh="操作后" data-en="After">操作后</figcaption><span class="effect-button" data-zh="提交" data-en="Submit">提交</span><b>1</b></div>
         </figure>
-        <div class="brief-output" aria-label="生成的任务书示例">
+        <div class="brief-output" aria-label="生成的任务书示例" data-aria-zh="生成的任务书示例" data-aria-en="Generated brief example">
           <div class="brief-top"><span data-zh="任务书预览" data-en="Brief preview">任务书预览</span><i></i><i></i><i></i></div>
           <strong data-zh="修改位置 1" data-en="Change location 1">修改位置 1</strong>
           <dl>

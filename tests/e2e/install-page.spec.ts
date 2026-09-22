@@ -52,6 +52,11 @@ test('switches the core install story to English', async ({ page }) => {
   await page.locator('#language').click();
   await expect(page.getByRole('heading', { name: 'Edit on the page. Let the brief explain itself.' })).toBeVisible();
   await expect(page.locator('[data-section="workflow"]')).toContainText('Select');
+  await expect(page.locator('[data-section="effect"]')).toContainText('Submit');
+  await expect(page.locator('[data-section="effect"]')).not.toContainText('提交');
+  await expect(page.locator('nav')).toHaveAttribute('aria-label', 'Page navigation');
+  await expect(page.locator('.brief-output')).toHaveAttribute('aria-label', 'Generated brief example');
+  await expect(page.locator('.before-after button')).toHaveCount(0);
   await expect(page.locator('#bookmark')).toContainText('SpotBrief');
 });
 
