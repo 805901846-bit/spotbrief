@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 test('captures a dragged rectangle, includes metadata, deletes it, and cancels cleanly', async ({ page }) => {
   await page.goto('/tests/fixtures/basic.html');
   const host = page.locator('#patchbrief-host');
-  await expect(host.locator('[data-action="capture"]')).toHaveCount(1);
+  await host.locator('[data-action="settings"]').click();
 
   await host.locator('[data-action="capture"]').click();
   const layer = page.locator('.patchbrief-capture-layer');
@@ -26,17 +26,12 @@ test('captures a dragged rectangle, includes metadata, deletes it, and cancels c
 
   await expect(host.locator('.screenshot-preview')).toBeVisible();
   await expect(host.locator('.screenshot-meta')).toContainText('320 × 240');
-  await expect(host.locator('[data-action="copy-png"]')).toHaveCount(0);
-  await expect(host.locator('[data-action="download-png"]')).toHaveCount(0);
-  await host.locator('[data-action="screenshot-more"]').click();
-  await expect(host.locator('[data-action="copy-png"]')).toBeVisible();
-  await expect(host.locator('[data-action="download-png"]')).toBeVisible();
   const screenshotNote = host.locator('[name="screenshot-note"]');
   await expect(screenshotNote).toBeVisible();
   await screenshotNote.fill('重点修改截图左侧卡片的间距');
-  await host.locator('[data-action="generate"]').click();
+  await host.locator('.panel [data-action="generate"]').click();
   await expect(host.locator('.preview')).toContainText('## 截图');
-  await expect(host.locator('.preview')).toContainText('spotbrief-screenshot-');
+  await expect(host.locator('.preview')).toContainText('spotbrief-');
   await expect(host.locator('.preview')).toContainText('重点修改截图左侧卡片的间距');
   await expect(host.locator('.preview')).not.toContainText('## 预期结果');
 

@@ -1,5 +1,5 @@
 export type PreviewStyles = Partial<Pick<CSSStyleDeclaration,
-  'transform' | 'width' | 'height' | 'borderRadius' | 'backgroundColor' | 'willChange'
+  'translate' | 'width' | 'height' | 'borderRadius' | 'backgroundColor' | 'willChange'
 >>;
 
 export interface VisualSession {

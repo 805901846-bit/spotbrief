@@ -40,4 +40,13 @@ describe('visual change store', () => {
     ]);
     expect(store.countDiffs()).toBe(2);
   });
+
+  it('keeps the first before value across repeated edits', () => {
+    const element = document.createElement('div');
+    const store = createVisualChangeStore();
+    store.setStyle(element, '#card', 'translate', '', '10px 0px');
+    store.setStyle(element, '#card', 'translate', '10px 0px', '30px 0px');
+
+    expect(store.get(element)?.styles.translate).toEqual({ before: '', after: '30px 0px' });
+  });
 });

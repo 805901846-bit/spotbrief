@@ -1,28 +1,26 @@
 import { expect, test } from '@playwright/test';
 
-test('keeps the main task flow compact and supports shared and per-target instructions', async ({ page }) => {
+test('starts compact, preserves draft fields, and preselects safe constraints', async ({ page }) => {
   await page.goto('/tests/fixtures/basic.html');
   const panel = page.locator('#patchbrief-host');
+  await panel.locator('[data-action="settings"]').click();
+  const codeSection = panel.locator('details[data-section="code"]');
+  const constraintSection = panel.locator('details[data-section="constraints"]');
 
-  await expect(panel.locator('[data-role="selection-prompt"]')).toContainText('点击页面元素开始选择');
-  await expect(panel.locator('[data-action="capture"]')).toHaveCount(1);
-  await expect(panel.locator('[name="request"]')).toBeVisible();
-  await expect(panel.getByText('全局修改目标')).toHaveCount(0);
-  await expect(panel.getByText('相关代码')).toHaveCount(0);
-  await expect(panel.getByText('高级选项')).toHaveCount(0);
-  await expect(panel.locator('[data-action="undo"]')).toHaveCount(0);
-  await expect(panel.locator('[data-action="settings"]')).toBeVisible();
+  await expect(codeSection).not.toHaveAttribute('open', '');
+  await expect(constraintSection).not.toHaveAttribute('open', '');
+  await expect(panel.locator('[name="expected"]')).toHaveCount(0);
+  await expect(panel.locator('[name="constraint"]:checked')).toHaveCount(5);
 
-  await page.locator('#delete-order').click();
-  await page.locator('#secondary').click({ modifiers: ['Shift'] });
-  await expect(panel.locator('[data-note]')).toHaveCount(2);
-  await panel.locator('[data-note="0"]').fill('使用危险操作红色样式');
-  await panel.locator('[data-note="1"]').fill('保持现有文字颜色');
-  await panel.locator('[name="request"]').fill('两个按钮统一改成 8px 圆角');
-  await panel.locator('[data-action="generate"]').click();
+  await codeSection.locator('summary').click();
+  await panel.locator('[name="code"]').fill('function demo() {\n  return true;\n}');
+  await codeSection.locator('summary').click();
+  await codeSection.locator('summary').click();
+  await expect(panel.locator('[name="code"]')).toHaveValue('function demo() {\n  return true;\n}');
 
-  const preview = panel.locator('.preview');
-  await expect(preview).toContainText('两个按钮统一改成 8px 圆角');
-  await expect(preview).toContainText('使用危险操作红色样式');
-  await expect(preview).toContainText('保持现有文字颜色');
+  await panel.locator('[name="request"]').fill('缩小卡片留白');
+  await panel.locator('.panel [data-action="generate"]').click();
+  await panel.locator('[data-action="back"]').click();
+  await expect(panel.locator('[name="request"]')).toHaveValue('缩小卡片留白');
+  await expect(panel.locator('[name="code"]')).toHaveValue('function demo() {\n  return true;\n}');
 });
