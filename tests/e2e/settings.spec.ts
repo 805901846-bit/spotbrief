@@ -13,9 +13,8 @@ test('moves AI, constraints, and output preferences into settings', async ({ pag
 
   await panel.locator('[name="include-html"]').check();
   await panel.locator('[name="constraint"]').first().check();
-  await panel.locator('[data-action="settings-back"]').click();
-  await expect(panel.locator('[name="request"]')).toBeVisible();
-  await expect(panel.locator('.settings-view')).toHaveCount(0);
+  await panel.locator('[data-action="close-settings"]').click();
+  await expect(panel.locator('.settings-panel')).toHaveCount(0);
 });
 
 test('enables AI by default when bookmark pairing is configured', async ({ page }) => {
