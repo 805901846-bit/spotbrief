@@ -39,4 +39,24 @@ describe('brief output', () => {
     expect(text).toContain('“高级一点”属于主观描述');
     expect(text).toContain('不要自行指定颜色、阴影、渐变或视觉风格');
   });
+  it('prints numbered before and after visual changes', () => {
+    const text = generateBriefMarkdown({
+      ...draft,
+      visualChanges: [{
+        number: 1,
+        selector: '#delete',
+        note: '强调主操作',
+        snapNote: '与 .card 水平居中',
+        styles: {
+          borderRadius: { before: '0px', after: '16px' },
+          width: { before: '240px', after: '320px', delta: 80 }
+        }
+      }]
+    });
+
+    expect(text).toContain('### 修改位置 1');
+    expect(text).toContain('圆角：0px → 16px');
+    expect(text).toContain('宽度：240px → 320px（+80px）');
+    expect(text).toContain('与 .card 水平居中');
+  });
 });

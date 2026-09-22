@@ -18,8 +18,34 @@ export interface SnapResult {
 }
 
 export function parseTranslate(transform: string): Point {
-  const match = transform.match(/translate(?:3d)?\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px/i);
-  return match ? { x: Number(match[1]), y: Number(match[2]) } : { x: 0, y: 0 };
+  const functionMatch = transform.match(/translate(?:3d)?\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px/i);
+  if (functionMatch) return { x: Number(functionMatch[1]), y: Number(functionMatch[2]) };
+  const individualMatch = transform.trim().match(/^(-?[\d.]+)px(?:\s+(-?[\d.]+)px)?(?:\s+[-\d.]+px)?$/i);
+  return individualMatch ? { x: Number(individualMatch[1]), y: Number(individualMatch[2] || 0) } : { x: 0, y: 0 };
+}
+
+function translateComponents(value: string): [string, string] {
+  const normalized = value.trim();
+  if (!normalized || normalized === 'none') return ['0px', '0px'];
+  const parts: string[] = [];
+  let depth = 0, start = 0;
+  for (let index = 0; index <= normalized.length; index += 1) {
+    const character = normalized[index];
+    if (character === '(') depth += 1;
+    else if (character === ')') depth -= 1;
+    if ((character === undefined || /\s/.test(character)) && depth === 0) {
+      if (index > start) parts.push(normalized.slice(start, index));
+      while (index + 1 < normalized.length && /\s/.test(normalized[index + 1]!)) index += 1;
+      start = index + 1;
+    }
+  }
+  return [parts[0] || '0px', parts[1] || '0px'];
+}
+
+export function offsetTranslate(value: string, dx: number, dy: number): string {
+  const [x, y] = translateComponents(value);
+  if ((value.trim() === '' || value.trim() === 'none') && x === '0px' && y === '0px') return `${dx}px ${dy}px`;
+  return `calc(${x} + ${dx}px) calc(${y} + ${dy}px)`;
 }
 
 export function calculateResize(box: Box, direction: ResizeDirection, dx: number, dy: number, lockAspect: boolean, minimum = 16): Box {
@@ -44,6 +70,15 @@ export function calculateResize(box: Box, direction: ResizeDirection, dx: number
     width,
     height
   };
+}
+
+export function applyResizeSnap(box: Box, direction: ResizeDirection, snap: Pick<SnapResult, 'dx' | 'dy'>, minimum = 16): Box {
+  let { x, y, width, height } = box;
+  if (direction.includes('e')) width += snap.dx;
+  if (direction.includes('w')) { x += snap.dx; width -= snap.dx; }
+  if (direction.includes('s')) height += snap.dy;
+  if (direction.includes('n')) { y += snap.dy; height -= snap.dy; }
+  return { x, y, width: Math.max(minimum, width), height: Math.max(minimum, height) };
 }
 
 interface Candidate extends SnapGuide { delta: number; distance: number }
@@ -83,4 +118,24 @@ export function findSnap(moving: MovingBox, references: SnapReference[], thresho
     vertical: x && { position: x.position, label: x.label },
     horizontal: y && { position: y.position, label: y.label }
   };
+}
+
+export function findResizeSnap(box: Box, direction: ResizeDirection, references: SnapReference[], threshold = 9): SnapResult {
+  const xCandidates: Candidate[] = [];
+  const yCandidates: Candidate[] = [];
+  const sourceX = direction.includes('w') ? box.x : direction.includes('e') ? box.x + box.width : undefined;
+  const sourceY = direction.includes('n') ? box.y : direction.includes('s') ? box.y + box.height : undefined;
+  for (const reference of references) {
+    if (sourceX !== undefined) for (const target of [reference.left, (reference.left + reference.right) / 2, reference.right]) {
+      const delta = target - sourceX;
+      xCandidates.push({ delta, distance: Math.abs(delta), position: target, label: `与 ${reference.name} 对齐` });
+    }
+    if (sourceY !== undefined) for (const target of [reference.top, (reference.top + reference.bottom) / 2, reference.bottom]) {
+      const delta = target - sourceY;
+      yCandidates.push({ delta, distance: Math.abs(delta), position: target, label: `与 ${reference.name} 对齐` });
+    }
+  }
+  const x = closest(xCandidates, threshold);
+  const y = closest(yCandidates, threshold);
+  return { dx: x?.delta ?? 0, dy: y?.delta ?? 0, vertical: x && { position: x.position, label: x.label }, horizontal: y && { position: y.position, label: y.label } };
 }

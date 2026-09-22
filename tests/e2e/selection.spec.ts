@@ -4,8 +4,8 @@ test('selects elements, generates a brief, and destroys cleanly', async ({page})
   await expect(page.locator('#patchbrief-host')).toHaveCount(1);
   await page.locator('#delete-order').hover(); await expect(page.locator('.patchbrief-hover-overlay')).toBeVisible();
   await page.locator('#delete-order').click();
-  const panel=page.locator('#patchbrief-host');const request=panel.locator('textarea[name=request]');await request.fill('改成危险操作样式');
+  const panel=page.locator('#patchbrief-host');await panel.locator('[data-action=settings]').click();const request=panel.locator('textarea[name=request]');await request.fill('改成危险操作样式');
   await expect(panel.locator('[name=ai-optimize]')).toBeVisible();
-  await panel.locator('[data-action=generate]').click();await expect(panel.locator('.preview')).toContainText('Frontend Change Brief');
+  await panel.locator('.panel [data-action=generate]').click();await expect(panel.locator('.preview')).toContainText('Frontend Change Brief');
   await page.evaluate(()=>window.__PATCHBRIEF__?.destroy());await expect(page.locator('#patchbrief-host')).toHaveCount(0);await expect(page.locator('[class^=patchbrief-]')).toHaveCount(0);
 });

@@ -55,6 +55,20 @@ export function createCanvasOverlay(): CanvasOverlay {
     background: 'rgba(230,111,44,.04)'
   });
 
+  for (const direction of ['n', 'e', 's', 'w'] as const) {
+    const edge = document.createElement('div');
+    edge.dataset.dragEdge = direction;
+    Object.assign(edge.style, {
+      position: 'absolute',
+      pointerEvents: 'auto',
+      ...(direction === 'n' ? { left: '8px', right: '8px', top: '-6px', height: '12px', cursor: 'grab' } : {}),
+      ...(direction === 'e' ? { top: '8px', right: '-6px', bottom: '8px', width: '12px', cursor: 'grab' } : {}),
+      ...(direction === 's' ? { left: '8px', right: '8px', bottom: '-6px', height: '12px', cursor: 'grab' } : {}),
+      ...(direction === 'w' ? { top: '8px', left: '-6px', bottom: '8px', width: '12px', cursor: 'grab' } : {})
+    });
+    element.append(edge);
+  }
+
   for (const direction of directions) {
     const handle = document.createElement('button');
     handle.type = 'button';

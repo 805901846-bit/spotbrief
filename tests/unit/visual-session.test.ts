@@ -8,7 +8,7 @@ describe('visual session', () => {
     document.body.append(element);
     const session = createVisualSession();
 
-    session.apply(element, { transform: 'rotate(3deg) translate3d(20px, 0, 0)', borderRadius: '12px' });
+    session.apply(element, { translate: '20px 0px', borderRadius: '12px' });
     session.restoreAll();
 
     expect(element.getAttribute('style')).toBe('transform: rotate(3deg); color: blue');

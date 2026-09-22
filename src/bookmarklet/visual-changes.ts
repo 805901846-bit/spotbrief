@@ -51,8 +51,9 @@ export function createVisualChangeStore(): VisualChangeStore {
   return {
     setStyle(element, selector, property, before, after, delta) {
       const record = ensure(element, selector);
-      if (after === before) delete record.styles[property];
-      else record.styles[property] = { before, after, ...(delta === undefined ? {} : { delta }) };
+      const originalBefore = record.styles[property]?.before ?? before;
+      if (after === originalBefore) delete record.styles[property];
+      else record.styles[property] = { before: originalBefore, after, ...(delta === undefined ? {} : { delta }) };
       if (isEmpty(record)) records.delete(element);
     },
     setNote(element, selector, note) {
