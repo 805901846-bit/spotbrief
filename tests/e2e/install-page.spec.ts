@@ -12,6 +12,7 @@ test('presents the immersive install story and real editing workflow', async ({ 
   await expect(page.locator('[data-section="workflow"]')).toContainText('拖拽');
   await expect(page.locator('[data-section="effect"]')).toContainText('修改位置 1');
   await expect(page.locator('[data-product-preview]')).toContainText('生成任务书');
+  await expect(page.locator('[data-product-preview] .preview-exit')).toHaveAttribute('aria-label', '关闭 SpotBrief');
 
   const layout = await page.locator('main').evaluate((main) => {
     const hero = main.querySelector<HTMLElement>('.hero');
