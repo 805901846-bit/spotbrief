@@ -1,5 +1,46 @@
 import { expect, test } from '@playwright/test';
 
+test('closes an untouched SpotBrief session immediately', async ({ page }) => {
+  await page.goto('/tests/fixtures/basic.html');
+  const host = page.locator('#patchbrief-host');
+  await host.locator('[data-action="request-exit"]').click();
+  await expect(host).toHaveCount(0);
+});
+
+test('confirms exit and restores the page after visual edits', async ({ page }) => {
+  await page.goto('/tests/fixtures/basic.html');
+  const target = page.locator('#delete-order');
+  const originalStyle = await target.getAttribute('style');
+  await target.click();
+  const host = page.locator('#patchbrief-host');
+  const radius = host.locator('[data-action="set-radius"]');
+  await radius.fill('18');
+  await radius.dispatchEvent('change');
+
+  await host.locator('[data-action="request-exit"]').click();
+  await expect(host.locator('[role="dialog"]')).toContainText('退出 SpotBrief？');
+  await expect(host.locator('[data-action="cancel-exit"]')).toBeFocused();
+  await host.locator('[data-action="confirm-exit"]').click();
+
+  await expect(host).toHaveCount(0);
+  expect(await target.getAttribute('style')).toBe(originalStyle);
+  await expect(page.locator('[class^="patchbrief-"]')).toHaveCount(0);
+});
+
+test('cancels guarded exit and preserves the edited session', async ({ page }) => {
+  await page.goto('/tests/fixtures/basic.html');
+  const target = page.locator('#delete-order');
+  await target.click();
+  const host = page.locator('#patchbrief-host');
+
+  await page.keyboard.press('Escape');
+  await expect(host.locator('[role="dialog"]')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(host.locator('[role="dialog"]')).toBeHidden();
+  await expect(host).toHaveCount(1);
+  await expect(target).toBeVisible();
+});
+
 test('edits, numbers, resets, and restores one element', async ({ page }) => {
   await page.goto('/tests/fixtures/basic.html');
   const target = page.locator('#delete-order');
