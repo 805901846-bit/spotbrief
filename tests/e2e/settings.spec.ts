@@ -12,6 +12,7 @@ test('moves AI, constraints, and output preferences into settings', async ({ pag
   await expect(panel.locator('[name="include-html"]')).not.toBeChecked();
 
   await panel.locator('[name="include-html"]').check();
+  await panel.locator('[data-section="constraints"] summary').click();
   await panel.locator('[name="constraint"]').first().check();
   await panel.locator('[data-action="close-settings"]').click();
   await expect(panel.locator('.settings-panel')).toHaveCount(0);
