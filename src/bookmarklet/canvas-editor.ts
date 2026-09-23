@@ -91,7 +91,7 @@ export function createTaskBar(root: HTMLElement | ShadowRoot): TaskBar {
     <button class="icon-button" data-action="redo" type="button" aria-label="重做" title="重做">↷</button>
     <button data-action="settings" type="button">设置</button>
     <button class="generate-button" data-action="generate" type="button">生成任务书</button>
-    <button class="exit-button" data-action="request-exit" type="button" aria-label="关闭 SpotBrief" title="关闭 SpotBrief">×</button>`;
+    <button class="exit-button" data-action="request-exit" type="button" aria-label="关闭 SpotBrief" title="关闭 SpotBrief"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg></button>`;
   root.append(element);
   const count = element.querySelector<HTMLElement>('[data-change-count]')!;
   const undo = element.querySelector<HTMLButtonElement>('[data-action="undo"]')!;
