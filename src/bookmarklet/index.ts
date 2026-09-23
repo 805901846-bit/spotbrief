@@ -53,6 +53,8 @@ interface PointerSession {
   let preview = '', aiMessage = '', screenshotMessage = '';
   let screenshot: ScreenshotState | undefined, captureStream: MediaStream | undefined;
   let activeCapture: ReturnType<typeof selectCaptureRect> | null = null;
+  let aiAbort: AbortController | undefined;
+  let destroyed = false;
   let controller: PatchBriefController;
 
   const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -218,14 +220,20 @@ interface PointerSession {
   const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   async function startCapture() {
     if (capturing) return; capturing = true; let video: HTMLVideoElement | undefined;
-    try { captureStream = await requestDisplayStream(); video = await prepareCaptureVideo(captureStream); host.style.display = 'none'; activeCapture = selectCaptureRect(); const rect = await activeCapture.promise; activeCapture = null; if (!rect) return; await nextFrame(); await nextFrame(); const blob = await captureVideoRegion(video, rect); if (screenshot) URL.revokeObjectURL(screenshot.url); form.screenshotNote = ''; screenshot = { blob, url: URL.createObjectURL(blob), filename: `spotbrief-${Date.now()}.png`, width: Math.round(rect.width), height: Math.round(rect.height) }; }
+    try { captureStream = await requestDisplayStream(); if (destroyed) return; video = await prepareCaptureVideo(captureStream); if (destroyed) return; host.style.display = 'none'; activeCapture = selectCaptureRect(); const rect = await activeCapture.promise; activeCapture = null; if (!rect || destroyed) return; await nextFrame(); if (destroyed) return; await nextFrame(); if (destroyed) return; const blob = await captureVideoRegion(video, rect); if (destroyed) return; if (screenshot) URL.revokeObjectURL(screenshot.url); form.screenshotNote = ''; screenshot = { blob, url: URL.createObjectURL(blob), filename: `spotbrief-${Date.now()}.png`, width: Math.round(rect.width), height: Math.round(rect.height) }; }
     catch (error) { screenshotMessage = error instanceof Error ? error.message : '截图失败'; }
-    finally { captureStream?.getTracks().forEach((track) => track.stop()); captureStream = undefined; video?.remove(); host.style.display = ''; capturing = false; refresh(); renderScreenshot(); }
+    finally { captureStream?.getTracks().forEach((track) => track.stop()); captureStream = undefined; video?.remove(); capturing = false; if (!destroyed) { host.style.display = ''; refresh(); renderScreenshot(); } }
   }
   async function generate() {
     const local = generateBriefMarkdown(draft()); aiMessage = '';
-    if (!form.aiOptimize) preview = local; else try { preview = await requestAiEnhancement(local, bridge); aiMessage = '✓ 已使用 AI 优化'; } catch (error) { preview = local; aiMessage = `AI 优化失败：${error instanceof Error ? error.message : '未知错误'}`; }
-    settingsOpen = true; renderSettings();
+    if (!form.aiOptimize) preview = local;
+    else {
+      aiAbort?.abort(); const currentAbort = new AbortController(); aiAbort = currentAbort;
+      try { const result = await requestAiEnhancement(local, bridge, currentAbort.signal); if (destroyed || currentAbort.signal.aborted) return; preview = result; aiMessage = '✓ 已使用 AI 优化'; }
+      catch (error) { if (destroyed || currentAbort.signal.aborted) return; preview = local; aiMessage = `AI 优化失败：${error instanceof Error ? error.message : '未知错误'}`; }
+      finally { if (aiAbort === currentAbort) aiAbort = undefined; }
+    }
+    if (destroyed) return; settingsOpen = true; renderSettings();
   }
 
   function onHover(event: PointerEvent) { if (capturing || paused || pointer || event.composedPath().includes(host)) return; lastHovered = (event.composedPath().find((x) => x instanceof Element && !x.closest?.('[data-patchbrief-ui]')) as Element) || null; if (!hoverRaf) hoverRaf = requestAnimationFrame(() => { hoverRaf = 0; positionOverlay(hover, lastHovered); }); }
@@ -308,7 +316,7 @@ interface PointerSession {
   const reposition = () => refresh(); window.addEventListener('scroll', reposition, true); window.addEventListener('resize', reposition);
 
   controller = { version: VERSION, open() { host.style.display = ''; refresh(); }, pause() { paused = true; hover.style.display = 'none'; }, resume() { paused = false; }, destroy() {
-    activeCapture?.cancel(); captureStream?.getTracks().forEach((track) => track.stop()); if (screenshot) URL.revokeObjectURL(screenshot.url); if (hoverRaf) cancelAnimationFrame(hoverRaf); if (canvasRaf) cancelAnimationFrame(canvasRaf); pointer = null; session.restoreAll();
+    destroyed = true; aiAbort?.abort(); activeCapture?.cancel(); captureStream?.getTracks().forEach((track) => track.stop()); if (screenshot) URL.revokeObjectURL(screenshot.url); if (hoverRaf) cancelAnimationFrame(hoverRaf); if (canvasRaf) cancelAnimationFrame(canvasRaf); pointer = null; session.restoreAll();
     document.removeEventListener('pointermove', onHover, true); document.removeEventListener('click', onPageClick, true); document.removeEventListener('click', onMarkerClick, true); document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('pointerdown', startPointer, true); window.removeEventListener('pointermove', movePointer, true); window.removeEventListener('pointerup', endPointer, true); window.removeEventListener('pointercancel', endPointer, true); window.removeEventListener('scroll', reposition, true); window.removeEventListener('resize', reposition);
     hover.remove(); overlays.forEach((overlay) => overlay.destroy()); editor.destroy(); taskBar.destroy(); exitDialog.destroy(); document.querySelector('.patchbrief-capture-layer')?.remove(); host.remove(); delete window.__PATCHBRIEF__;

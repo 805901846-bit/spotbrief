@@ -54,3 +54,24 @@ test('captures a dragged rectangle, includes metadata, deletes it, and cancels c
   await expect(host.locator('.screenshot-preview')).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.documentElement.style.overflow)).toBe('');
 });
+
+test('does not create a capture layer after SpotBrief exits during permission', async ({ page }) => {
+  await page.addInitScript(() => {
+    let resolveCapture!: (stream: MediaStream) => void;
+    const pending = new Promise<MediaStream>((resolve) => { resolveCapture = resolve; });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getDisplayMedia: () => pending } });
+    (window as unknown as { resolveSpotBriefCapture: typeof resolveCapture }).resolveSpotBriefCapture = resolveCapture;
+  });
+  await page.goto('/tests/fixtures/basic.html');
+  const host = page.locator('#patchbrief-host');
+  await host.locator('[data-action="settings"]').click();
+  await host.locator('[data-action="capture"]').click({ noWaitAfter: true });
+  await host.locator('[data-action="request-exit"]').click();
+  await expect(host).toHaveCount(0);
+
+  await page.evaluate(() => {
+    (window as unknown as { resolveSpotBriefCapture(stream: MediaStream): void }).resolveSpotBriefCapture(new MediaStream());
+  });
+  await page.waitForTimeout(100);
+  await expect(page.locator('.patchbrief-capture-layer')).toHaveCount(0);
+});

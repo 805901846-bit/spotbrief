@@ -41,6 +41,27 @@ test('cancels guarded exit and preserves the edited session', async ({ page }) =
   await expect(target).toBeVisible();
 });
 
+test('cancels pending AI generation when exit is confirmed', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__PATCHBRIEF_AI_BRIDGE__ = { url: 'https://example.test/bridge', token: 'paired-token' };
+    (window as unknown as { spotBriefPopupClosed: boolean }).spotBriefPopupClosed = false;
+    window.open = () => ({
+      close() { (window as unknown as { spotBriefPopupClosed: boolean }).spotBriefPopupClosed = true; },
+      postMessage() {}
+    }) as unknown as Window;
+  });
+  await page.goto('/tests/fixtures/basic.html');
+  await page.locator('#delete-order').click();
+  const host = page.locator('#patchbrief-host');
+  await host.locator('[data-action="settings"]').click();
+  await host.locator('.panel [data-action="generate"]').click();
+  await host.locator('[data-action="request-exit"]').click();
+  await host.locator('[data-action="confirm-exit"]').click();
+
+  await expect(host).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { spotBriefPopupClosed: boolean }).spotBriefPopupClosed)).toBe(true);
+});
+
 test('edits, numbers, resets, and restores one element', async ({ page }) => {
   await page.goto('/tests/fixtures/basic.html');
   const target = page.locator('#delete-order');
