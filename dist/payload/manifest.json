@@ -1,7 +1,8 @@
 {
   "version": "0.2.0",
   "chunks": [
-    "chunk-000.txt"
+    "chunk-000.txt",
+    "chunk-001.txt"
   ],
-  "bytes": 36716
+  "bytes": 57898
 }

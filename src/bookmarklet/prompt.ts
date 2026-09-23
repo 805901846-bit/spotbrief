@@ -22,6 +22,20 @@ export function generateBriefMarkdown(draft: BriefDraft): string {
       if (item.invalid) out.push('- 状态：目标已失效');
     }
   }
+  if (draft.visualChanges?.length) {
+    const labels = { transform: '位移', width: '宽度', height: '高度', borderRadius: '圆角', backgroundColor: '填充颜色' } as const;
+    out.push('', '## 视觉修改位置');
+    for (const item of draft.visualChanges) {
+      out.push('', `### 修改位置 ${item.number}`, '', `- Selector：${item.selector}`);
+      if (item.note) out.push(`- 修改说明：${item.note}`);
+      if (item.snapNote) out.push(`- 对齐关系：${item.snapNote}`);
+      for (const [property, diff] of Object.entries(item.styles)) {
+        if (!diff) continue;
+        const delta = diff.delta === undefined ? '' : `（${diff.delta >= 0 ? '+' : ''}${diff.delta}px）`;
+        out.push(`- ${labels[property as keyof typeof labels]}：${diff.before} → ${diff.after}${delta}`);
+      }
+    }
+  }
   if (draft.relatedCode?.content.trim()) out.push('', '## 相关代码', '', `\`\`\`${draft.relatedCode.language.toLowerCase()}`, draft.relatedCode.content, '```');
   out.push('', '## 修改约束', '', ...(draft.constraints.length ? draft.constraints : defaults).map((x) => `- ${x}`));
   if (draft.screenshot?.filename || draft.screenshot?.description) {

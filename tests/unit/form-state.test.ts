@@ -14,8 +14,12 @@ describe('form state', () => {
   it('contains only fields used by the compact task flow', () => {
     expect(createFormState()).toEqual({
       request: '',
+      code: '',
+      language: 'TSX',
       constraints: [...SAFE_DEFAULT_CONSTRAINTS],
       screenshotNote: '',
+      codeOpen: false,
+      constraintsOpen: false,
       aiOptimize: false,
     });
   });

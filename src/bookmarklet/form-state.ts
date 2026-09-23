@@ -8,16 +8,24 @@ export const SAFE_DEFAULT_CONSTRAINTS = [
 
 export interface FormState {
   request: string;
+  code: string;
+  language: string;
   constraints: string[];
   screenshotNote: string;
+  codeOpen: boolean;
+  constraintsOpen: boolean;
   aiOptimize: boolean;
 }
 
 export function createFormState(savedDefaults?: string[], aiConfigured = false): FormState {
   return {
     request: '',
+    code: '',
+    language: 'TSX',
     constraints: savedDefaults?.length ? [...savedDefaults] : [...SAFE_DEFAULT_CONSTRAINTS],
     screenshotNote: '',
+    codeOpen: false,
+    constraintsOpen: false,
     aiOptimize: aiConfigured,
   };
 }

@@ -3,6 +3,17 @@ export const VERSION = '0.2.0';
 export type Language = 'zh-CN' | 'en';
 export interface RectSnapshot { x: number; y: number; width: number; height: number }
 export interface PanelPosition { x: number; y: number }
+export type EditableStyleProperty = 'translate' | 'width' | 'height' | 'borderRadius' | 'backgroundColor';
+export interface StyleDiff { before: string; after: string; delta?: number }
+export interface VisualChangeRecord {
+  number: number;
+  element: Element;
+  selector: string;
+  note: string;
+  styles: Partial<Record<EditableStyleProperty, StyleDiff>>;
+  snapNote?: string;
+}
+export interface BriefVisualChange extends Omit<VisualChangeRecord, 'element'> {}
 export interface SelectionRecord {
   id: string; element: Element; label: string; tag: string; text?: string;
   selector?: string; locator?: string; region?: string; rect: RectSnapshot;
@@ -18,6 +29,7 @@ export interface BriefDraft {
   constraints: string[];
   expectedResult?: string;
   screenshot?: { filename?: string; description?: string };
+  visualChanges?: BriefVisualChange[];
 }
 export interface Preferences {
   language: Language; collapsed: boolean; includeHtml: boolean; includeVisual: boolean;

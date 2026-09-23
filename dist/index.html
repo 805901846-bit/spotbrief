@@ -3,50 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SpotBrief · 视觉修改任务书</title>
+  <meta name="description" content="SpotBrief 将网页上的可视化修改整理成可交付的前端任务书。">
+  <title>SpotBrief · 在网页上改，让任务书自己说清楚</title>
   <link rel="icon" href="./favicon.svg">
   <link rel="stylesheet" href="./install.css">
 </head>
 <body>
-  <header><b>SpotBrief</b><button id="language">EN</button></header>
-  <main>
-    <section class="hero">
-      <div>
-        <small>VISUAL CHANGE WORKBENCH · v0.2.0</small>
-        <h1 data-zh="把网页上的修改意图，整理成一份清楚的任务书。" data-en="Turn visual change requests into a clear engineering brief.">把网页上的修改意图，整理成一份清楚的任务书。</h1>
-        <p data-zh="选择页面位置，补充要求与代码，然后把结构化任务书交给 AI 编码助手。所有内容留在本地。" data-en="Select elements, add requirements and code, then hand a structured brief to an AI coding assistant. Everything stays local.">选择页面位置，补充要求与代码，然后把结构化任务书交给 AI 编码助手。所有内容留在本地。</p>
-        <div class="installer">
-          <span id="status">正在准备书签…</span>
-          <a id="bookmark" draggable="false" aria-disabled="true">SpotBrief</a>
-          <em>准备好后，把按钮拖到书签栏。</em>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="SpotBrief 首页" data-aria-zh="SpotBrief 首页" data-aria-en="SpotBrief home"><span aria-hidden="true">S</span>SpotBrief</a>
+    <nav aria-label="页面导航" data-aria-zh="页面导航" data-aria-en="Page navigation">
+      <a href="#workflow" data-zh="如何使用" data-en="How it works">如何使用</a>
+      <a href="#effect" data-zh="使用效果" data-en="What you get">使用效果</a>
+      <a href="#privacy" data-zh="隐私" data-en="Privacy">隐私</a>
+    </nav>
+    <div class="header-actions">
+      <button id="language" type="button" aria-label="切换语言" data-aria-zh="切换语言" data-aria-en="Switch language">EN</button>
+      <a class="header-install" href="#install" data-zh="最快安装" data-en="Quick install">最快安装</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" data-section="hero">
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <h1 data-zh="在网页上改，让任务书自己说清楚。" data-en="Edit on the page. Let the brief explain itself.">在网页上改，让任务书自己说清楚。</h1>
+        <p class="hero-intro" data-zh="选中、拖拽、调整样式，SpotBrief 将每一处变更整理成可交付的前端任务书。" data-en="Select, drag, and style elements. SpotBrief turns every change into a clear frontend brief.">选中、拖拽、调整样式，SpotBrief 将每一处变更整理成可交付的前端任务书。</p>
+        <div class="installer" id="install">
+          <span id="status" role="status">正在准备书签</span>
+          <a id="bookmark" draggable="false" aria-disabled="true" data-zh="拖动 SpotBrief 到书签栏" data-en="Drag SpotBrief to bookmarks">拖动 SpotBrief 到书签栏</a>
+          <em data-zh="先显示书签栏：Ctrl/Cmd + Shift + B" data-en="Show the bookmarks bar: Ctrl/Cmd + Shift + B">先显示书签栏：Ctrl/Cmd + Shift + B</em>
         </div>
       </div>
-      <img src="./preview.svg" alt="SpotBrief preview">
+
+      <div class="product-preview" data-product-preview aria-hidden="true" inert>
+        <div class="preview-browser">
+          <div class="browser-bar"><i></i><i></i><i></i><span>product.local</span></div>
+          <div class="preview-canvas">
+            <div class="sample-copy"><small>SHIP BETTER INTERFACES</small><strong>Build with clarity.</strong><span>Turn feedback into an actionable frontend brief.</span></div>
+            <button class="sample-button" type="button">Start building</button>
+            <div class="selection-box"><b>1</b><i></i><i></i><i></i><i></i></div>
+            <div class="compact-editor">
+              <span class="selection-count" data-zh="已选 1 项" data-en="1 selected">已选 1 项</span>
+              <label><span data-zh="圆角" data-en="Radius">圆角</span><output>16</output></label>
+              <label><span data-zh="颜色" data-en="Color">颜色</span><i class="color-chip"></i></label>
+              <label class="request-field"><span class="sr-only" data-zh="修改说明" data-en="Change request">修改说明</span><input type="text" readonly value="改成页面主操作按钮" data-value-zh="改成页面主操作按钮" data-value-en="Make this the primary action"></label>
+              <button type="button" data-zh="重置" data-en="Reset">重置</button>
+            </div>
+          </div>
+        </div>
+        <div class="task-strip">
+          <span><b>1</b><span data-zh="处变更" data-en="change">处变更</span></span>
+          <div class="history" aria-label="历史操作"><button type="button" aria-label="撤销"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8H5V4M5.6 8A8 8 0 1 1 4 14"/></svg></button><button type="button" aria-label="重做"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 8h4V4m-.6 4A8 8 0 1 0 20 14"/></svg></button></div>
+          <button class="task-settings" type="button" data-zh="任务设置" data-en="Task settings">任务设置</button>
+          <button class="generate" type="button" data-zh="生成任务书" data-en="Generate brief">生成任务书</button>
+          <button class="preview-exit" type="button" aria-label="关闭 SpotBrief"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg></button>
+        </div>
+      </div>
+      <a class="scroll-cue" href="#workflow"><span data-zh="看看如何工作" data-en="See how it works">看看如何工作</span><b aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14m-5-5 5 5 5-5"/></svg></b></a>
     </section>
-    <section>
-      <h2 data-zh="三步开始" data-en="Start in three steps">三步开始</h2>
-      <div class="cards">
-        <article><b>01</b><h3>显示书签栏</h3><p>Chrome / Edge: Ctrl/Cmd + Shift + B</p></article>
-        <article><b>02</b><h3>拖动安装</h3><p>把 SpotBrief 按钮拖到书签栏。</p></article>
-        <article><b>03</b><h3>选择并生成</h3><p>打开普通网页或 localhost，点击书签。</p></article>
+
+    <section id="workflow" class="workflow section-shell" data-section="workflow">
+      <div class="section-heading">
+        <h2 data-zh="选中元件，直接表达修改意图" data-en="Select an element and express the change directly">选中元件，直接表达修改意图</h2>
+        <p data-zh="无需描述位置和层级。可视化操作与修改说明会一起进入任务书。" data-en="No need to describe position or hierarchy. Visual edits and written instructions stay together.">无需描述位置和层级。可视化操作与修改说明会一起进入任务书。</p>
+      </div>
+      <ol class="workflow-list">
+        <li><span>01</span><strong data-zh="选中" data-en="Select">选中</strong><p data-zh="点击元素，打开轻量编辑器" data-en="Click an element to open the compact editor">点击元素，打开轻量编辑器</p></li>
+        <li><span>02</span><strong data-zh="调整" data-en="Style">调整</strong><p data-zh="设置圆角、颜色和修改说明" data-en="Set radius, color, and the change request">设置圆角、颜色和修改说明</p></li>
+        <li><span>03</span><strong data-zh="拖拽" data-en="Drag">拖拽</strong><p data-zh="移动、拉伸和吸附，Alt 临时关闭吸附" data-en="Move, resize, and snap. Hold Alt to bypass snapping">移动、拉伸和吸附，Alt 临时关闭吸附</p></li>
+        <li><span>04</span><strong data-zh="多选" data-en="Multi-select">多选</strong><p data-zh="Shift + 点击后整组移动或批量说明" data-en="Shift-click to move a group or add a shared request">Shift + 点击后整组移动或批量说明</p></li>
+        <li><span>05</span><strong data-zh="检查" data-en="Review">检查</strong><p data-zh="编号定位变更，撤销、重做或单项重置" data-en="Locate numbered edits, undo, redo, or reset one item">编号定位变更，撤销、重做或单项重置</p></li>
+        <li><span>06</span><strong data-zh="生成" data-en="Generate">生成</strong><p data-zh="记录前后差异，生成结构化任务书" data-en="Capture before and after states in a structured brief">记录前后差异，生成结构化任务书</p></li>
+      </ol>
+    </section>
+
+    <section id="effect" class="effect section-shell" data-section="effect">
+      <div class="section-heading">
+        <h2 data-zh="操作结果，直接进入任务书" data-en="Every action becomes part of the brief">操作结果，直接进入任务书</h2>
+        <p data-zh="设计结果和修改原因同时保留，开发者不必猜测你指的是哪里。" data-en="The visual result and its intent stay together, so developers never have to guess what you meant.">设计结果和修改原因同时保留，开发者不必猜测你指的是哪里。</p>
+      </div>
+      <div class="effect-layout">
+        <figure class="before-after">
+          <div><figcaption data-zh="操作前" data-en="Before">操作前</figcaption><span class="effect-button" data-zh="提交" data-en="Submit">提交</span></div>
+          <span aria-hidden="true">→</span>
+          <div class="after"><figcaption data-zh="操作后" data-en="After">操作后</figcaption><span class="effect-button" data-zh="提交" data-en="Submit">提交</span><b>1</b></div>
+        </figure>
+        <div class="brief-output" aria-label="生成的任务书示例" data-aria-zh="生成的任务书示例" data-aria-en="Generated brief example">
+          <div class="brief-top"><span data-zh="任务书预览" data-en="Brief preview">任务书预览</span><i></i><i></i><i></i></div>
+          <strong data-zh="修改位置 1" data-en="Change location 1">修改位置 1</strong>
+          <dl>
+            <div><dt>Selector</dt><dd>#primary-action</dd></div>
+            <div><dt data-zh="圆角" data-en="Radius">圆角</dt><dd>8px → 16px</dd></div>
+            <div><dt data-zh="填充颜色" data-en="Fill color">填充颜色</dt><dd>#334155 → #0d8a80</dd></div>
+            <div><dt data-zh="修改说明" data-en="Request">修改说明</dt><dd data-zh="改成页面主操作按钮" data-en="Make this the primary action">改成页面主操作按钮</dd></div>
+          </dl>
+        </div>
       </div>
     </section>
-    <section class="ai-card">
-      <div><small>OPTIONAL · AI OPTIMIZATION</small><h2>配置 AI 指令优化</h2><p>只有在生成任务书时勾选“使用 AI 优化”，SpotBrief 才会把清理后的任务书发送到你配置的 OpenAI-compatible API。API Key 仅保存在此页面所属域名的浏览器存储中，不会写入书签或任务书。</p></div>
+
+    <section class="ai-card section-shell">
+      <div class="ai-copy">
+        <h2 data-zh="需要时，再让 AI 优化表达" data-en="Use AI only when the brief needs refinement">需要时，再让 AI 优化表达</h2>
+        <p data-zh="只有生成任务书时主动勾选，才会把清理后的内容发送到你配置的 OpenAI-compatible API。密钥只保存在当前浏览器。" data-en="Only an explicit opt-in during generation sends a cleaned brief to your OpenAI-compatible API. The key stays in this browser.">只有生成任务书时主动勾选，才会把清理后的内容发送到你配置的 OpenAI-compatible API。密钥只保存在当前浏览器。</p>
+      </div>
       <form id="ai-settings">
-        <label>API Base URL<input name="baseUrl" type="url" required placeholder="https://api.openai.com/v1"></label>
-        <label>模型<input name="model" type="text" required placeholder="填写账号可用的模型名称"></label>
-        <label>API Key<input name="apiKey" type="password" required autocomplete="off" placeholder="仅保存在当前浏览器"></label>
-        <button type="submit">保存 AI 设置</button><p id="ai-status" role="status"></p>
+        <label><span>API Base URL</span><input name="baseUrl" type="url" required placeholder="https://api.openai.com/v1"></label>
+        <label><span data-zh="模型" data-en="Model">模型</span><input name="model" type="text" required placeholder="gpt-5"></label>
+        <label><span>API Key</span><input name="apiKey" type="password" required autocomplete="off" placeholder="sk-..."></label>
+        <button type="submit" data-zh="保存 AI 设置" data-en="Save AI settings">保存 AI 设置</button>
+        <p id="ai-status" role="status"></p>
       </form>
     </section>
-    <section class="info">
-      <article><h2>隐私优先</h2><p>默认不上传页面信息；启用 AI 优化后，仅向用户配置的 API 发送经过清理的任务书。</p></article>
-      <article><h2>支持范围</h2><p>Chrome/Edge 完整支持；Firefox/Safari 提供核心流程。内部页面和跨域 iframe 受安全限制。</p></article>
+
+    <section id="privacy" class="trust section-shell">
+      <article><h2 data-zh="默认留在本地" data-en="Local by default">默认留在本地</h2><p data-zh="页面信息、操作记录与任务书默认不上传。" data-en="Page data, edit history, and briefs are not uploaded by default.">页面信息、操作记录与任务书默认不上传。</p></article>
+      <article><h2 data-zh="浏览器范围" data-en="Browser support">浏览器范围</h2><p data-zh="Chrome 与 Edge 完整支持。浏览器内部页面和跨域 iframe 受安全限制。" data-en="Chrome and Edge are fully supported. Internal pages and cross-origin iframes remain restricted.">Chrome 与 Edge 完整支持。浏览器内部页面和跨域 iframe 受安全限制。</p></article>
+      <article><h2 data-zh="不直接改代码" data-en="No direct code edits">不直接改代码</h2><p data-zh="SpotBrief 记录视觉变化并生成任务书，不会替你提交源代码。" data-en="SpotBrief records visual changes and generates a brief. It does not commit source code.">SpotBrief 记录视觉变化并生成任务书，不会替你提交源代码。</p></article>
     </section>
-    <section><h2>FAQ</h2><details><summary>为什么内部页面不能运行？</summary><p>浏览器禁止 Bookmarklet 在 chrome://、edge://、扩展商店和新标签页执行。</p></details><details><summary>它会修改代码吗？</summary><p>不会。SpotBrief 只生成任务书。</p></details></section>
+
+    <section class="faq section-shell">
+      <div class="section-heading"><h2 data-zh="常见问题" data-en="Common questions">常见问题</h2></div>
+      <div class="faq-list">
+        <details><summary data-zh="为什么内部页面不能运行？" data-en="Why does it not run on internal browser pages?">为什么内部页面不能运行？</summary><p data-zh="浏览器禁止书签工具在 chrome://、edge://、扩展商店和新标签页执行。" data-en="Browsers block bookmarklets on chrome://, edge://, extension stores, and new-tab pages.">浏览器禁止书签工具在 chrome://、edge://、扩展商店和新标签页执行。</p></details>
+        <details><summary data-zh="可以同时拖拽和填写修改说明吗？" data-en="Can I drag elements and write requests in one session?">可以同时拖拽和填写修改说明吗？</summary><p data-zh="可以。两类变更共享同一份历史记录，也都支持撤销、重做和生成前重置。" data-en="Yes. Both edit types share one history and support undo, redo, and reset before generation.">可以。两类变更共享同一份历史记录，也都支持撤销、重做和生成前重置。</p></details>
+      </div>
+    </section>
   </main>
-  <footer>MIT Licensed · SpotBrief 0.2.0</footer>
+
+  <footer><a class="wordmark" href="#top"><span aria-hidden="true">S</span>SpotBrief</a><p>MIT Licensed · SpotBrief 0.2.0</p></footer>
   <script type="module" src="./install.js"></script>
 </body>
 </html>

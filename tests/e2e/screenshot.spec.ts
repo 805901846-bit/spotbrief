@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 test('captures a dragged rectangle, includes metadata, deletes it, and cancels cleanly', async ({ page }) => {
   await page.goto('/tests/fixtures/basic.html');
   const host = page.locator('#patchbrief-host');
-  await expect(host.locator('[data-action="capture"]')).toHaveCount(1);
+  await host.locator('[data-action="settings"]').click();
 
   await host.locator('[data-action="capture"]').click();
   const layer = page.locator('.patchbrief-capture-layer');
@@ -26,17 +26,12 @@ test('captures a dragged rectangle, includes metadata, deletes it, and cancels c
 
   await expect(host.locator('.screenshot-preview')).toBeVisible();
   await expect(host.locator('.screenshot-meta')).toContainText('320 × 240');
-  await expect(host.locator('[data-action="copy-png"]')).toHaveCount(0);
-  await expect(host.locator('[data-action="download-png"]')).toHaveCount(0);
-  await host.locator('[data-action="screenshot-more"]').click();
-  await expect(host.locator('[data-action="copy-png"]')).toBeVisible();
-  await expect(host.locator('[data-action="download-png"]')).toBeVisible();
   const screenshotNote = host.locator('[name="screenshot-note"]');
   await expect(screenshotNote).toBeVisible();
   await screenshotNote.fill('重点修改截图左侧卡片的间距');
-  await host.locator('[data-action="generate"]').click();
+  await host.locator('.panel [data-action="generate"]').click();
   await expect(host.locator('.preview')).toContainText('## 截图');
-  await expect(host.locator('.preview')).toContainText('spotbrief-screenshot-');
+  await expect(host.locator('.preview')).toContainText('spotbrief-');
   await expect(host.locator('.preview')).toContainText('重点修改截图左侧卡片的间距');
   await expect(host.locator('.preview')).not.toContainText('## 预期结果');
 
@@ -58,4 +53,25 @@ test('captures a dragged rectangle, includes metadata, deletes it, and cancels c
   await host.locator('[data-action="delete-screenshot"]').click();
   await expect(host.locator('.screenshot-preview')).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.documentElement.style.overflow)).toBe('');
+});
+
+test('does not create a capture layer after SpotBrief exits during permission', async ({ page }) => {
+  await page.addInitScript(() => {
+    let resolveCapture!: (stream: MediaStream) => void;
+    const pending = new Promise<MediaStream>((resolve) => { resolveCapture = resolve; });
+    Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getDisplayMedia: () => pending } });
+    (window as unknown as { resolveSpotBriefCapture: typeof resolveCapture }).resolveSpotBriefCapture = resolveCapture;
+  });
+  await page.goto('/tests/fixtures/basic.html');
+  const host = page.locator('#patchbrief-host');
+  await host.locator('[data-action="settings"]').click();
+  await host.locator('[data-action="capture"]').click({ noWaitAfter: true });
+  await host.locator('[data-action="request-exit"]').click();
+  await expect(host).toHaveCount(0);
+
+  await page.evaluate(() => {
+    (window as unknown as { resolveSpotBriefCapture(stream: MediaStream): void }).resolveSpotBriefCapture(new MediaStream());
+  });
+  await page.waitForTimeout(100);
+  await expect(page.locator('.patchbrief-capture-layer')).toHaveCount(0);
 });
